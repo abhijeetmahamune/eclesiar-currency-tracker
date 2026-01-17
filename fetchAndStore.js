@@ -13,6 +13,7 @@ const ECLESIAR_API_KEY = process.env.ECLESIAR_API_KEY;
 
 // 🔹 Fetch all countries
 async function fetchAllCountries() {
+  console.log("API KEY PRESENT:", !!ECLESIAR_API_KEY);
   const res = await fetch("https://api.eclesiar.com/countries", {
     headers: {
       "X-API-KEY": ECLESIAR_API_KEY,
