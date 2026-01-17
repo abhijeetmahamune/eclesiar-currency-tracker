@@ -1,49 +1,56 @@
 import fetch from "node-fetch";
 import admin from "firebase-admin";
 
-// Firebase init
+/* =========================
+   Firebase Initialization
+========================= */
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
+
+/* =========================
+   Eclesiar API Key
+========================= */
 const ECLESIAR_API_KEY = process.env.ECLESIAR_API_KEY;
 
-// 🔹 Fetch all countries
+/* =========================
+   Fetch All Countries
+========================= */
 async function fetchAllCountries() {
-  console.log("API KEY PRESENT:", !!ECLESIAR_API_KEY);
   const res = await fetch("https://api.eclesiar.com/countries", {
     headers: {
-      "X-API-KEY": ECLESIAR_API_KEY,
-      "Accept": "application/json",
-      "User-Agent": "eclesiar-currency-tracker/1.0"
-    }
+      Authorization: `Bearer ${ECLESIAR_API_KEY}`,
+      Accept: "application/json",
+      "User-Agent": "eclesiar-currency-tracker/1.0",
+    },
   });
 
   const json = await res.json();
 
-  console.log("Countries API response:", JSON.stringify(json, null, 2));
-
   if (!json.data || !Array.isArray(json.data)) {
-    console.log("No countries data");
+    console.log("No countries data received");
     return [];
   }
 
   return json.data;
 }
 
-// 🔹 Fetch market rate
+/* =========================
+   Fetch Market Rate
+========================= */
 async function fetchMarketRate(currencyId) {
   const res = await fetch(
     `https://api.eclesiar.com/market/coin/get?currency_id=${currencyId}`,
     {
       headers: {
-        "X-API-KEY": ECLESIAR_API_KEY,
-        "Accept": "application/json",
-        "User-Agent": "eclesiar-currency-tracker/1.0"
-      }
+        Authorization: `Bearer ${ECLESIAR_API_KEY}`,
+        Accept: "application/json",
+        "User-Agent": "eclesiar-currency-tracker/1.0",
+      },
     }
   );
 
@@ -53,47 +60,53 @@ async function fetchMarketRate(currencyId) {
     return null;
   }
 
+  // Best (lowest) sell price
   return json.data[0].rate;
 }
 
-// 🔹 Main runner
+/* =========================
+   Main Runner
+========================= */
 async function run() {
-  const countries = await fetchAllCountries();
+  console.log("Starting hourly currency fetch...");
 
+  const countries = await fetchAllCountries();
   console.log("Total countries:", countries.length);
 
   let stored = 0;
   let skipped = 0;
 
-  for (const c of countries) {
-    if (!c.currency || !c.currency.id) {
+  for (const country of countries) {
+    if (!country.currency || !country.currency.id) {
       skipped++;
       continue;
     }
 
-    const rate = await fetchMarketRate(c.currency.id);
+    const rate = await fetchMarketRate(country.currency.id);
 
     if (!rate) {
-      console.log(`No market data for ${c.name}`);
+      console.log(`No market data for ${country.name}`);
       skipped++;
       continue;
     }
 
     await db.collection("currency_prices").add({
-      country: c.name,
-      currency: c.currency.name,
-      currency_id: c.currency.id,
+      country: country.name,
+      currency: country.currency.name,
+      currency_id: country.currency.id,
       gold_rate: rate,
       unit: "1g",
-      timestamp: admin.firestore.FieldValue.serverTimestamp()
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    console.log(`Stored ${c.name}: ${rate}`);
+    console.log(`Stored ${country.name}: ${rate}`);
     stored++;
   }
 
   console.log(`DONE → Stored: ${stored}, Skipped: ${skipped}`);
 }
 
-// 🔹 Execute
+/* =========================
+   Execute
+========================= */
 run();
