@@ -1,7 +1,6 @@
 import fetch from "node-fetch";
 import admin from "firebase-admin";
 
-// 🔐 Firebase service account (from secrets)
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
@@ -10,15 +9,23 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-// 🔐 Eclesiar API Key
 const ECLESIAR_API_KEY = process.env.ECLESIAR_API_KEY;
 
-// India currency ID (we’ll expand later)
-const CURRENCY_ID = 40;
+async function fetchAllCountries() {
+  const res = await fetch("https://api.eclesiar.com/countries", {
+    headers: {
+      "X-API-KEY": ECLESIAR_API_KEY,
+      "Accept": "application/json"
+    }
+  });
 
-async function fetchCurrency() {
+  const json = await res.json();
+  return json.data;
+}
+
+async function fetchMarketRate(currencyId) {
   const res = await fetch(
-    `https://api.eclesiar.com/market/coin/get?currency_id=${CURRENCY_ID}`,
+    `https://api.eclesiar.com/market/coin/get?currency_id=${currencyId}`,
     {
       headers: {
         "X-API-KEY": ECLESIAR_API_KEY,
@@ -27,25 +34,32 @@ async function fetchCurrency() {
     }
   );
 
-const json = await res.json();
+  const json = await res.json();
+  if (!json.data || json.data.length === 0) return null;
 
-if (!json.data || json.data.length === 0) {
-  console.log("No market data available. Skipping this run.");
-  return;
+  return json.data[0].rate; // best price
 }
 
-const bestRate = json.data[0].rate;
+async function run() {
+  const countries = await fetchAllCountries();
 
-  await db.collection("currency_prices").add({
-    country: "India",
-    currency: "INR",
-    currency_id: CURRENCY_ID,
-    gold_rate: bestRate,
-    unit: "1g",
-    timestamp: admin.firestore.FieldValue.serverTimestamp()
-  });
+  for (const c of countries) {
+    if (!c.currency || !c.currency.id) continue;
 
-  console.log("Stored:", bestRate);
+    const rate = await fetchMarketRate(c.currency.id);
+    if (!rate) continue;
+
+    await db.collection("currency_prices").add({
+      country: c.name,
+      currency: c.currency.name,
+      currency_id: c.currency.id,
+      gold_rate: rate,
+      unit: "1g",
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    console.log(`Stored ${c.name}: ${rate}`);
+  }
 }
 
-fetchCurrency();
+run();
