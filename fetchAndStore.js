@@ -60,11 +60,24 @@ async function fetchMarketRate(currencyId) {
 async function run() {
   const countries = await fetchAllCountries();
 
+  console.log("Total countries:", countries.length);
+
+  let stored = 0;
+  let skipped = 0;
+
   for (const c of countries) {
-    if (!c.currency || !c.currency.id) continue;
+    if (!c.currency || !c.currency.id) {
+      skipped++;
+      continue;
+    }
 
     const rate = await fetchMarketRate(c.currency.id);
-    if (!rate) continue;
+
+    if (!rate) {
+      console.log(`No market data for ${c.name}`);
+      skipped++;
+      continue;
+    }
 
     await db.collection("currency_prices").add({
       country: c.name,
@@ -76,7 +89,12 @@ async function run() {
     });
 
     console.log(`Stored ${c.name}: ${rate}`);
+    stored++;
   }
+
+  console.log(`DONE → Stored: ${stored}, Skipped: ${skipped}`);
+}
+
 }
 
 run();
