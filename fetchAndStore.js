@@ -71,29 +71,28 @@ async function run() {
       continue;
     }
 
-      const rate = await fetchMarketRate(c.currency.id);
+    const rate = await fetchMarketRate(c.currency.id);
 
-      if (!rate) {
-        console.log(`No market data for ${c.name}`);
-        skipped++;
-        continue;
-      }
-
-      await db.collection("currency_prices").add({
-        country: c.name,
-        currency: c.currency.name,
-        currency_id: c.currency.id,
-        gold_rate: rate,
-        unit: "1g",
-        timestamp: admin.firestore.FieldValue.serverTimestamp()
-      });
-
-      console.log(`Stored ${c.name}: ${rate}`);
-      stored++;
+    if (!rate) {
+      console.log(`No market data for ${c.name}`);
+      skipped++;
+      continue;
     }
-  
-    console.log(`DONE → Stored: ${stored}, Skipped: ${skipped}`);
+
+    await db.collection("currency_prices").add({
+      country: c.name,
+      currency: c.currency.name,
+      currency_id: c.currency.id,
+      gold_rate: rate,
+      unit: "1g",
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    console.log(`Stored ${c.name}: ${rate}`);
+    stored++;
   }
+
+  console.log(`DONE → Stored: ${stored}, Skipped: ${skipped}`);
 }
 
 run();
