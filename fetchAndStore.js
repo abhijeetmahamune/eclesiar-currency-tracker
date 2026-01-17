@@ -57,12 +57,26 @@ async function fetchMarketRate(currencyId) {
   return json.data[0].rate;
 }
 
+async function getLastKnownRate(currencyId) {
+  const snapshot = await db
+    .collection("currency_prices")
+    .where("currency_id", "==", currencyId)
+    .orderBy("timestamp", "desc")
+    .limit(1)
+    .get();
+
+  if (snapshot.empty) return null;
+
+  return snapshot.docs[0].data().gold_rate;
+}
+
 async function run() {
   const countries = await fetchAllCountries();
 
   console.log("Total countries:", countries.length);
 
   let stored = 0;
+  let reused = 0;
   let skipped = 0;
 
   for (const c of countries) {
@@ -71,12 +85,23 @@ async function run() {
       continue;
     }
 
-    const rate = await fetchMarketRate(c.currency.id);
+    // 1️⃣ Try live market
+    let rate = await fetchMarketRate(c.currency.id);
 
+    // 2️⃣ If no live market → fallback to last known
     if (!rate) {
-      console.log(`No market data for ${c.name}`);
-      skipped++;
-      continue;
+      rate = await getLastKnownRate(c.currency.id);
+
+      if (!rate) {
+        console.log(`No data ever for ${c.name}`);
+        skipped++;
+        continue;
+      }
+
+      console.log(`Reusing last price for ${c.name}: ${rate}`);
+      reused++;
+    } else {
+      console.log(`Live price for ${c.name}: ${rate}`);
     }
 
     await db.collection("currency_prices").add({
@@ -85,14 +110,16 @@ async function run() {
       currency_id: c.currency.id,
       gold_rate: rate,
       unit: "1g",
+      source: rate ? "live_or_cached" : "unknown",
       timestamp: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    console.log(`Stored ${c.name}: ${rate}`);
     stored++;
   }
 
-  console.log(`DONE → Stored: ${stored}, Skipped: ${skipped}`);
+  console.log(
+    `DONE → Stored: ${stored}, Reused: ${reused}, Skipped: ${skipped}`
+  );
 }
 
 run();
