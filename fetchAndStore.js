@@ -27,8 +27,14 @@ async function fetchCurrency() {
     }
   );
 
-  const json = await res.json();
-  const bestRate = json.data[0].rate;
+const json = await res.json();
+
+if (!json.data || json.data.length === 0) {
+  console.log("No market data available. Skipping this run.");
+  return;
+}
+
+const bestRate = json.data[0].rate;
 
   await db.collection("currency_prices").add({
     country: "India",
