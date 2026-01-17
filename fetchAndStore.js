@@ -8,7 +8,6 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-
 const ECLESIAR_API_KEY = process.env.ECLESIAR_API_KEY;
 
 async function fetchAllCountries() {
@@ -21,18 +20,21 @@ async function fetchAllCountries() {
 
   const json = await res.json();
 
-  // 🔍 Detect correct array
-  if (Array.isArray(json.data)) return json.data;
-  if (Array.isArray(json.countries)) return json.countries;
-  if (json.data && Array.isArray(json.data.countries)) return json.data.countries;
+  if (!json.data) {
+    console.log("No countries data");
+    return [];
+  }
 
-  console.log("Unexpected countries response:", json);
+  if (Array.isArray(json.data)) {
+    return json.data;
+  }
+
+  if (Array.isArray(json.data.countries)) {
+    return json.data.countries;
+  }
+
+  console.log("Unexpected countries format:", json.data);
   return [];
-}
-
-
-  // const json = await res.json();
-  // return json.data;
 }
 
 async function fetchMarketRate(currencyId) {
@@ -47,20 +49,17 @@ async function fetchMarketRate(currencyId) {
   );
 
   const json = await res.json();
-  if (!json.data || json.data.length === 0) return null;
 
-  return json.data[0].rate; // best price
+  if (!json.data || json.data.length === 0) {
+    return null;
+  }
+
+  return json.data[0].rate;
 }
 
 async function run() {
   const countries = await fetchAllCountries();
 
-if (!Array.isArray(countries) || countries.length === 0) {
-  console.log("No countries fetched. Exiting safely.");
-  return;
-}
-
-  
   for (const c of countries) {
     if (!c.currency || !c.currency.id) continue;
 
