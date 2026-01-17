@@ -14,21 +14,22 @@ async function fetchAllCountries() {
   const res = await fetch("https://api.eclesiar.com/countries", {
     headers: {
       "X-API-KEY": ECLESIAR_API_KEY,
-      "Accept": "application/json"
+      "Accept": "application/json",
+      "User-Agent": "eclesiar-currency-tracker/1.0"
     }
   });
 
   const json = await res.json();
 
-  if (!json.data) {
+  console.log("Countries API FULL response:", JSON.stringify(json, null, 2));
+
+  if (!json.data || !Array.isArray(json.data)) {
     console.log("No countries data");
     return [];
   }
 
-  if (Array.isArray(json.data)) {
-    return json.data;
+  return json.data;
   }
-
   if (Array.isArray(json.data.countries)) {
     return json.data.countries;
   }
@@ -43,16 +44,15 @@ async function fetchMarketRate(currencyId) {
     {
       headers: {
         "X-API-KEY": ECLESIAR_API_KEY,
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "User-Agent": "eclesiar-currency-tracker/1.0"
       }
     }
   );
 
   const json = await res.json();
 
-  if (!json.data || json.data.length === 0) {
-    return null;
-  }
+  if (!json.data || json.data.length === 0) return null;
 
   return json.data[0].rate;
 }
