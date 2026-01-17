@@ -20,7 +20,19 @@ async function fetchAllCountries() {
   });
 
   const json = await res.json();
-  return json.data;
+
+  // 🔍 Detect correct array
+  if (Array.isArray(json.data)) return json.data;
+  if (Array.isArray(json.countries)) return json.countries;
+  if (json.data && Array.isArray(json.data.countries)) return json.data.countries;
+
+  console.log("Unexpected countries response:", json);
+  return [];
+}
+
+
+  // const json = await res.json();
+  // return json.data;
 }
 
 async function fetchMarketRate(currencyId) {
@@ -43,6 +55,12 @@ async function fetchMarketRate(currencyId) {
 async function run() {
   const countries = await fetchAllCountries();
 
+if (!Array.isArray(countries) || countries.length === 0) {
+  console.log("No countries fetched. Exiting safely.");
+  return;
+}
+
+  
   for (const c of countries) {
     if (!c.currency || !c.currency.id) continue;
 
