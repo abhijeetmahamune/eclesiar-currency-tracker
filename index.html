@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eclesiar Currency Dashboard</title>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --bg-sidebar: #0d1424;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+    }
+    
+   /* Sidebar */
+.sidebar {
+  width: 260px;
+  background: var(--bg-sidebar);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 0 8px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(to right, #60a5fa, var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.section-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin: 24px 0 12px 8px;
+}
+
+/* Country Selection */
+.country-selection {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px; /* Fixed height for scrolling */
+  margin-bottom: 20px;
+}
+
+.country-list {
+  list-style: none;
+}
+
+.country-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  margin: 4px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.country-item:hover {
+  background: rgba(99, 102, 241, 0.1);
+}
+
+.country-item.selected {
+  background: rgba(99, 102, 241, 0.2);
+  border-left: 3px solid var(--primary);
+}
+
+.country-flag {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.country-name {
+  flex: 1;
+  font-size: 15px;
+}
+
+.country-check {
+  color: var(--primary);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.country-item.selected .country-check {
+  opacity: 1;
+}
+
+.search-box {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 16px 12px 40px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.search-box i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  body {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .country-selection {
+    max-height: 300px; /* Adjust for mobile */
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 16px;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .stats-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-wrapper {
+    height: 300px;
+  }
+}
+    /* Country Selection */
+   .country-selection {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px; /* Add this line to limit height */
+  margin-bottom: 20px; /* Optional: Add some spacing */
+}
+    
+    .country-list {
+      list-style: none;
+    }
+    
+    .country-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      margin: 4px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .country-item:hover {
+      background: rgba(99, 102, 241, 0.1);
+    }
+    
+    .country-item.selected {
+      background: rgba(99, 102, 241, 0.2);
+      border-left: 3px solid var(--primary);
+    }
+    
+    .country-flag {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin-right: 12px;
+      object-fit: cover;
+      border: 1px solid var(--border-color);
+    }
+    
+    .country-name {
+      flex: 1;
+      font-size: 15px;
+    }
+    
+    .country-check {
+      color: var(--primary);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .country-item.selected .country-check {
+      opacity: 1;
+    }
+    
+    .search-box {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 40px;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+    
+    .search-box i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+    
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    
+    .header-subtitle {
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    
+    .header-controls {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .btn {
+      padding: 10px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    
+    /* Stats Cards */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+    }
+    
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .stat-title {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    
+    .icon-gold {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+    
+    .icon-trend {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+    
+    .icon-countries {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary);
+    }
+    
+    .icon-time {
+      background: rgba(139, 92, 246, 0.2);
+      color: #8b5cf6;
+    }
+    
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .stat-change {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .stat-change.positive {
+      color: var(--success);
+    }
+    
+    .stat-change.negative {
+      color: var(--danger);
+    }
+    
+    /* Chart Container */
+    .chart-container {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 24px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    
+    .chart-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .chart-controls {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .time-filter {
+      display: flex;
+      background: rgba(30, 41, 59, 0.5);
+      border-radius: 8px;
+      padding: 4px;
+    }
+    
+    .time-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .time-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .chart-wrapper {
+      position: relative;
+      height: 400px;
+    }
+    
+    /* Country Table */
+    .table-container {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 24px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+    }
+    
+    .table-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    thead {
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    td {
+      padding: 16px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+    }
+    
+    .currency-name {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .currency-flag {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+    }
+    
+    .trend-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .trend-up {
+      color: var(--success);
+    }
+    
+    .trend-down {
+      color: var(--danger);
+    }
+    
+    .trend-neutral {
+      color: var(--text-secondary);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+  body {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .country-selection {
+    max-height: 300px; /* Slightly taller for mobile */
+  }
+}
+    
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 16px;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+      
+      .stats-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .chart-wrapper {
+        height: 300px;
+      }
+    }
+    
+    /* Loading State */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(30, 41, 59, 0.5);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-dark);
+    }
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon img {
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+  </style>
+<!-- Basic Meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- SEO -->
+<title>Eclesiar Currency vs Gold Dashboard</title>
+<meta name="description" content="Live currency vs gold price dashboard powered by Eclesiar market data. Compare multiple countries with interactive charts.">
+
+<!-- Open Graph (LinkedIn / WhatsApp) -->
+<meta property="og:title" content="Eclesiar Currency vs Gold Dashboard">
+<meta property="og:description" content="Track and compare global currencies against gold with real-time visual analytics.">
+<meta property="og:type" content="website">
+
+<!-- Theme color (mobile browsers) -->
+<meta name="theme-color" content="#020617">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+  <div class="logo-icon">
+    <img src="logo.svg" alt="Eclesiar Currency Logo" />
+  </div>
+  <div class="logo-text">Eclesiar Currency</div>
+</div>
+    
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input type="text" id="searchInput" placeholder="Search countries...">
+    </div>
+    
+    <div class="section-title">Countries</div>
+    
+    <div class="country-selection">
+      <ul class="country-list" id="countryList">
+        <!-- Country items will be populated here -->
+      </ul>
+    </div>
+    
+    <div class="section-title">Last Updated</div>
+    <div style="padding: 0 8px; font-size: 14px;" id="lastUpdated">
+      <span class="loading"></span> Loading...
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="header">
+      <div>
+        <h1>Currency vs Gold Dashboard</h1>
+        <div class="header-subtitle">Real-time tracking of currency values against gold across multiple countries</div>
+      </div>
+      <div class="header-controls">
+        <button class="btn" id="refreshBtn">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <button class="btn btn-primary" id="exportBtn">
+          <i class="fas fa-download"></i> Export Data
+        </button>
+      </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">Avg. Gold Rate</div>
+          <div class="stat-icon icon-gold">
+            <i class="fas fa-coins"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="avgGoldRate">0.00</div>
+        <div class="stat-change positive" id="avgChange">
+          <i class="fas fa-arrow-up"></i> <span>0.00%</span>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">Highest Rate</div>
+          <div class="stat-icon icon-trend">
+            <i class="fas fa-chart-line"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="highestRate">0.00</div>
+        <div class="country-name" id="highestCountry">-</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">Countries Tracked</div>
+          <div class="stat-icon icon-countries">
+            <i class="fas fa-globe"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="countriesCount">0</div>
+        <div class="stat-change">
+          <span id="selectedCount">0</span> selected
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-title">Last Update</div>
+          <div class="stat-icon icon-time">
+            <i class="fas fa-clock"></i>
+          </div>
+        </div>
+        <div class="stat-value" id="updateTime">--:--</div>
+        <div class="stat-change">
+          <i class="fas fa-circle" style="color: var(--success); font-size: 8px;"></i> Live
+        </div>
+      </div>
+    </div>
+    
+    <!-- Chart Container -->
+    <div class="chart-container">
+      <div class="chart-header">
+        <div class="chart-title">Currency vs Gold Rate</div>
+        <div class="chart-controls">
+          <div class="time-filter">
+            <button class="time-btn active" data-range="1d">1D</button>
+            <button class="time-btn" data-range="1w">1W</button>
+            <button class="time-btn" data-range="1m">1M</button>
+            <button class="time-btn" data-range="3m">3M</button>
+            <button class="time-btn" data-range="all">All</button>
+          </div>
+          <button class="btn" id="compareBtn">
+            <i class="fas fa-chart-bar"></i> Compare
+          </button>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="priceChart"></canvas>
+      </div>
+    </div>
+    
+    <!-- Country Table -->
+    <div class="table-container">
+      <div class="table-title">Country Data Overview</div>
+      <table id="countryTable">
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Currency</th>
+            <th>Gold Rate</th>
+            <th>24h Change</th>
+            <th>Last Updated</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Table rows will be populated here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    query,
+    orderBy,
+    getDocs,
+    onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const DEFAULT_COUNTRIES = ["India", "France", "Slovenia", "Sweden", "South Korea"];
+  
+  // Country flag mapping (using flag emojis as placeholders - in production use actual flag images)
+  const COUNTRY_FLAGS = {
+    "Poland": "🇵🇱",
+    "India": "🇮🇳", 
+    "Slovenia": "🇸🇮",
+    "Sweden": "🇸🇪",
+    "Bulgaria": "🇧🇬",
+    "Germany": "🇩🇪",
+    "France": "🇫🇷",
+    "UK": "🇬🇧",
+    "USA": "🇺🇸",
+    "Japan": "🇯🇵",
+    "China": "🇨🇳",
+    "Brazil": "🇧🇷",
+    "Australia": "🇦🇺",
+    "Canada": "🇨🇦"
+  };
+  
+  // Currency symbols
+  const CURRENCY_SYMBOLS = {
+    "Poland": "PLN",
+    "India": "INR",
+    "Slovenia": "EUR",
+    "Sweden": "SEK",
+    "Bulgaria": "BGN",
+    "Germany": "EUR",
+    "France": "EUR",
+    "UK": "GBP",
+    "USA": "USD",
+    "Japan": "JPY",
+    "China": "CNY",
+    "Brazil": "BRL",
+    "Australia": "AUD",
+    "Canada": "CAD",
+	"South Korea": "KRW"
+  };
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJRjWRn5qXCxgNBSKOqZz1durPHLrzdlw",
+    authDomain: "eclesiar-currency-tracker.firebaseapp.com",
+    projectId: "eclesiar-currency-tracker",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  
+  const ctx = document.getElementById("priceChart");
+  let chart = null;
+  let allData = [];
+  let allCountries = [];
+  let selectedCountries = [...DEFAULT_COUNTRIES];
+  let realtimeSubscription = null;
+  let currentTimeRange = '1d'; // Default time range
+  
+  // Color palette for chart lines
+  const chartColors = [
+    '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#64748b'
+  ];
+  
+  // Helper function to calculate date ranges
+  function getTimeRangeCutoff(range) {
+    const now = new Date();
+    const cutoff = new Date();
+    
+    switch(range) {
+      case '1d':
+        cutoff.setDate(now.getDate() - 1);
+        break;
+      case '1w':
+        cutoff.setDate(now.getDate() - 7);
+        break;
+      case '1m':
+        cutoff.setMonth(now.getMonth() - 1);
+        break;
+      case '3m':
+        cutoff.setMonth(now.getMonth() - 3);
+        break;
+      case 'all':
+        // Return a very old date to include all data
+        return new Date(0);
+    }
+    
+    return cutoff;
+  }
+  
+  // Filter data by time range
+  function filterDataByTimeRange(data, timeRange) {
+    if (timeRange === 'all') return data;
+    
+    const cutoff = getTimeRangeCutoff(timeRange);
+    return data.filter(item => {
+      const itemDate = item.timestamp instanceof Date ? item.timestamp : new Date(item.timestamp);
+      return itemDate >= cutoff;
+    });
+  }
+  
+  // Initialize the dashboard
+  async function initDashboard() {
+    await loadData();
+    setupEventListeners();
+    updateStats(currentTimeRange);
+    updateTable(currentTimeRange);
+    drawChart(currentTimeRange);
+  }
+  
+  // Load data from Firestore
+  async function loadData() {
+    try {
+      const q = query(
+        collection(db, "currency_prices"),
+        orderBy("timestamp", "asc")
+      );
+      
+      const snapshot = await getDocs(q);
+      allData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          timestamp: data.timestamp?.toDate() || new Date()
+        };
+      });
+      
+      allCountries = [...new Set(allData.map(d => d.country))].sort();
+      populateCountryList();
+      drawChart(currentTimeRange);
+      
+      // Set up real-time updates
+      setupRealtimeUpdates();
+    } catch (error) {
+      console.error("Error loading data:", error);
+      showError("Failed to load data. Please check your connection.");
+    }
+  }
+  
+  // Set up real-time Firestore listener
+  function setupRealtimeUpdates() {
+    if (realtimeSubscription) {
+      realtimeSubscription(); // Unsubscribe from previous listener
+    }
+    
+    const q = query(
+      collection(db, "currency_prices"),
+      orderBy("timestamp", "desc")
+    );
+    
+    realtimeSubscription = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const newData = {
+            ...change.doc.data(),
+            id: change.doc.id,
+            timestamp: change.doc.data().timestamp?.toDate() || new Date()
+          };
+          
+          // Add to allData and sort
+          allData.unshift(newData);
+          allData.sort((a, b) => a.timestamp - b.timestamp);
+          
+          // Update UI if this country is selected
+          if (selectedCountries.includes(newData.country)) {
+            updateStats(currentTimeRange);
+            updateTable(currentTimeRange);
+            drawChart(currentTimeRange);
+          }
+        }
+      });
+      
+      updateLastUpdated();
+    });
+  }
+  
+  // Populate country list in sidebar
+  function populateCountryList() {
+    const countryList = document.getElementById("countryList");
+    countryList.innerHTML = "";
+    
+    allCountries.forEach((country, index) => {
+      const li = document.createElement("li");
+      li.className = `country-item ${selectedCountries.includes(country) ? 'selected' : ''}`;
+      li.dataset.country = country;
+      
+      li.innerHTML = `
+        <div class="country-flag">${COUNTRY_FLAGS[country] || '🌐'}</div>
+        <div class="country-name">${country}</div>
+        <div class="country-check"><i class="fas fa-check"></i></div>
+      `;
+      
+      li.addEventListener("click", () => toggleCountrySelection(country));
+      countryList.appendChild(li);
+    });
+    
+    document.getElementById("selectedCount").textContent = selectedCountries.length;
+    document.getElementById("countriesCount").textContent = allCountries.length;
+  }
+  
+  // Toggle country selection
+  function toggleCountrySelection(country) {
+    const index = selectedCountries.indexOf(country);
+    
+    if (index === -1) {
+      selectedCountries.push(country);
+    } else {
+      selectedCountries.splice(index, 1);
+    }
+    
+    // Update UI
+    const countryItem = document.querySelector(`.country-item[data-country="${country}"]`);
+    if (countryItem) {
+      countryItem.classList.toggle("selected", selectedCountries.includes(country));
+    }
+    
+    document.getElementById("selectedCount").textContent = selectedCountries.length;
+    
+    // Redraw chart if we have selected countries
+    if (selectedCountries.length > 0) {
+      drawChart(currentTimeRange);
+      updateStats(currentTimeRange);
+      updateTable(currentTimeRange);
+    } else {
+      if (chart) chart.destroy();
+    }
+  }
+  
+  // Draw the chart
+  function drawChart(timeRange = '1d') {
+    if (chart) chart.destroy();
+    if (selectedCountries.length === 0) return;
+    
+    currentTimeRange = timeRange;
+    
+    // Filter data based on time range
+    const filteredData = filterDataByTimeRange(allData, timeRange);
+    
+    const datasets = selectedCountries.map((country, index) => {
+      const countryData = filteredData.filter(d => d.country === country);
+      
+      // Calculate trend
+      let trend = "neutral";
+      if (countryData.length >= 2) {
+        const first = countryData[0].gold_rate;
+        const last = countryData[countryData.length - 1].gold_rate;
+        trend = last > first ? "up" : last < first ? "down" : "neutral";
+      }
+      
+      return {
+        label: `${country} (${CURRENCY_SYMBOLS[country] || ""})`,
+        data: countryData.map(r => r.gold_rate),
+        borderColor: chartColors[index % chartColors.length],
+        backgroundColor: chartColors[index % chartColors.length] + '20',
+        borderWidth: 3,
+        tension: 0.4,
+        pointRadius: 0,
+        pointHoverRadius: 6,
+        fill: false,
+        trend: trend
+      };
+    });
+    
+    // Get labels from the first selected country's filtered data
+    const firstCountryData = filteredData.filter(d => d.country === selectedCountries[0]);
+    
+    // Format labels based on time range
+    const labels = firstCountryData.map(d => {
+      const date = d.timestamp instanceof Date ? d.timestamp : new Date(d.timestamp);
+      
+      if (timeRange === '1d') {
+        // For 1 day, show hours and minutes
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else if (timeRange === '1w' || timeRange === '1m') {
+        // For week/month, show date and month
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      } else {
+        // For 3 months and all, show month and year
+        return date.toLocaleDateString([], { month: 'short', year: '2-digit' });
+      }
+    });
+    
+    // Chart configuration
+    const config = {
+      type: "line",
+      data: {
+        labels,
+        datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: '#f1f5f9',
+              font: {
+                size: 13
+              },
+              padding: 20,
+              usePointStyle: true,
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            titleColor: '#94a3b8',
+            bodyColor: '#f1f5f9',
+            borderColor: '#334155',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 6,
+            callbacks: {
+              title: function(context) {
+                const dateIndex = context[0].dataIndex;
+                if (firstCountryData[dateIndex]) {
+                  const date = firstCountryData[dateIndex].timestamp;
+                  const d = date instanceof Date ? date : new Date(date);
+                  return d.toLocaleDateString([], { 
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  });
+                }
+                return '';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              color: 'rgba(51, 65, 85, 0.3)',
+              drawBorder: false
+            },
+            ticks: {
+              color: '#94a3b8',
+              maxRotation: 45,
+              maxTicksLimit: 10
+            }
+          },
+          y: {
+            grid: {
+              color: 'rgba(51, 65, 85, 0.3)',
+              drawBorder: false
+            },
+            ticks: {
+              color: '#94a3b8',
+              callback: function(value) {
+                return value.toFixed(2);
+              }
+            },
+            title: {
+              display: true,
+              text: 'Gold Rate',
+              color: '#94a3b8'
+            }
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'nearest'
+        },
+        animation: {
+          duration: 750
+        }
+      }
+    };
+    
+    chart = new Chart(ctx, config);
+  }
+  
+  // Update statistics based on time range
+  function updateStats(timeRange = '1d') {
+    if (selectedCountries.length === 0) return;
+    
+    const filteredData = filterDataByTimeRange(allData, timeRange);
+    
+    let totalRate = 0;
+    let count = 0;
+    let highestRate = 0;
+    let highestCountry = "";
+    let totalChange = 0;
+    let changeCount = 0;
+    
+    selectedCountries.forEach(country => {
+      const countryData = filteredData.filter(d => d.country === country);
+      if (countryData.length > 0) {
+        const latestRate = countryData[countryData.length - 1].gold_rate;
+        totalRate += latestRate;
+        count++;
+        
+        if (latestRate > highestRate) {
+          highestRate = latestRate;
+          highestCountry = country;
+        }
+        
+        // Calculate change for this country
+        if (countryData.length >= 2) {
+          const first = countryData[0].gold_rate;
+          const last = latestRate;
+          const change = ((last - first) / first) * 100;
+          totalChange += change;
+          changeCount++;
+        }
+      }
+    });
+    
+    const avgRate = count > 0 ? totalRate / count : 0;
+    const avgChange = changeCount > 0 ? totalChange / changeCount : 0;
+    
+    // Update DOM elements
+    document.getElementById("avgGoldRate").textContent = avgRate.toFixed(2);
+    document.getElementById("highestRate").textContent = highestRate.toFixed(2);
+    document.getElementById("highestCountry").textContent = highestCountry || "-";
+    
+    const changeElement = document.getElementById("avgChange");
+    changeElement.className = `stat-change ${avgChange >= 0 ? 'positive' : 'negative'}`;
+    changeElement.innerHTML = avgChange >= 0 ? 
+      `<i class="fas fa-arrow-up"></i> <span>${Math.abs(avgChange).toFixed(2)}%</span>` :
+      `<i class="fas fa-arrow-down"></i> <span>${Math.abs(avgChange).toFixed(2)}%</span>`;
+  }
+  
+  // Update the table based on time range
+  function updateTable(timeRange = '1d') {
+    const tableBody = document.getElementById("tableBody");
+    tableBody.innerHTML = "";
+    
+    const filteredData = filterDataByTimeRange(allData, timeRange);
+    
+    selectedCountries.forEach(country => {
+      const countryData = filteredData.filter(d => d.country === country);
+      if (countryData.length === 0) return;
+      
+      const latest = countryData[countryData.length - 1];
+      const previous = countryData.length >= 2 ? countryData[0] : latest;
+      
+      const change = ((latest.gold_rate - previous.gold_rate) / previous.gold_rate) * 100;
+      const trend = change > 0 ? "up" : change < 0 ? "down" : "neutral";
+      
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>
+          <div class="currency-name">
+            <div class="currency-flag">${COUNTRY_FLAGS[country] || '🌐'}</div>
+            <div>${country}</div>
+          </div>
+        </td>
+        <td>${CURRENCY_SYMBOLS[country] || ""}</td>
+        <td><strong>${latest.gold_rate.toFixed(4)}</strong></td>
+        <td>
+          <div class="trend-indicator ${trend}">
+            ${trend === "up" ? '<i class="fas fa-arrow-up"></i>' : 
+              trend === "down" ? '<i class="fas fa-arrow-down"></i>' : 
+              '<i class="fas fa-minus"></i>'}
+            ${Math.abs(change).toFixed(2)}%
+          </div>
+        </td>
+        <td>${latest.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+      `;
+      
+      tableBody.appendChild(row);
+    });
+  }
+  
+  // Update last updated timestamp
+  function updateLastUpdated() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateString = now.toLocaleDateString();
+    
+    document.getElementById("lastUpdated").innerHTML = `
+      <i class="fas fa-clock" style="margin-right: 6px;"></i>
+      ${dateString} ${timeString}
+    `;
+    
+    document.getElementById("updateTime").textContent = timeString;
+  }
+  
+  // Set up event listeners
+  function setupEventListeners() {
+    // Search functionality
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const countryItems = document.querySelectorAll(".country-item");
+      
+      countryItems.forEach(item => {
+        const countryName = item.querySelector(".country-name").textContent.toLowerCase();
+        item.style.display = countryName.includes(searchTerm) ? "flex" : "none";
+      });
+    });
+    
+    // Time filter buttons
+    document.querySelectorAll(".time-btn").forEach(btn => {
+      btn.addEventListener("click", function() {
+        document.querySelectorAll(".time-btn").forEach(b => b.classList.remove("active"));
+        this.classList.add("active");
+        
+        const timeRange = this.dataset.range;
+        drawChart(timeRange);
+        updateStats(timeRange);
+        updateTable(timeRange);
+      });
+    });
+    
+    // Refresh button
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+      loadData();
+      document.getElementById("refreshBtn").innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refreshing';
+      setTimeout(() => {
+        document.getElementById("refreshBtn").innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+      }, 1000);
+    });
+    
+    // Export button
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      exportData();
+    });
+    
+    // Compare button
+    document.getElementById("compareBtn").addEventListener("click", () => {
+      alert("Comparison feature would open a detailed comparison view.");
+    });
+  }
+  
+  // Export data as CSV
+  function exportData() {
+    if (selectedCountries.length === 0) {
+      alert("Please select at least one country to export.");
+      return;
+    }
+    
+    // Filter data by current time range for export
+    const filteredData = filterDataByTimeRange(allData, currentTimeRange);
+    
+    let csv = "Country,Currency,Gold Rate,Timestamp\n";
+    
+    selectedCountries.forEach(country => {
+      const countryData = filteredData.filter(d => d.country === country);
+      countryData.forEach(data => {
+        const timestamp = data.timestamp instanceof Date ? 
+          data.timestamp.toISOString() : 
+          new Date(data.timestamp).toISOString();
+        csv += `${country},${CURRENCY_SYMBOLS[country] || ""},${data.gold_rate},${timestamp}\n`;
+      });
+    });
+    
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `currency_data_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  
+  // Show error message
+  function showError(message) {
+    // In a production app, you would have a proper error notification system
+    console.error(message);
+    alert(message);
+  }
+  
+  // Initialize the dashboard when DOM is loaded
+  document.addEventListener("DOMContentLoaded", initDashboard);
+</script>
+</body>
+</html>

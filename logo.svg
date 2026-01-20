@@ -1,0 +1,41 @@
+<svg
+  width="180"
+  height="180"
+  viewBox="0 0 180 180"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!-- Background -->
+  <rect width="180" height="180" rx="28" fill="#020617"/>
+
+  <!-- Globe circle -->
+  <circle cx="90" cy="80" r="46" fill="#020617" stroke="#38bdf8" stroke-width="4"/>
+
+  <!-- Latitude lines -->
+  <ellipse cx="90" cy="80" rx="46" ry="18" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.6"/>
+  <ellipse cx="90" cy="80" rx="46" ry="30" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.4"/>
+
+  <!-- Longitude line -->
+  <ellipse cx="90" cy="80" rx="18" ry="46" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.6"/>
+
+  <!-- Chart line -->
+  <polyline
+    points="44,110 62,96 78,104 96,82 114,90 136,68"
+    fill="none"
+    stroke="#facc15"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Chart dots -->
+  <circle cx="62" cy="96" r="3" fill="#facc15"/>
+  <circle cx="96" cy="82" r="3" fill="#facc15"/>
+  <circle cx="136" cy="68" r="3" fill="#facc15"/>
+
+  <!-- Gold coin -->
+  <circle cx="126" cy="44" r="10" fill="#facc15"/>
+  <circle cx="126" cy="44" r="6" fill="#fde047"/>
+
+  <!-- Base line -->
+  <line x1="40" y1="120" x2="140" y2="120" stroke="#334155" stroke-width="3"/>
+</svg>
